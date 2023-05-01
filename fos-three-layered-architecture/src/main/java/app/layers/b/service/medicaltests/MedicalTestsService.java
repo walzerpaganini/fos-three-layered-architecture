@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import app.layers.c.data.entities.MedicalTest;
@@ -11,16 +13,12 @@ import app.layers.c.data.entities.MedicalTestResult;
 import app.layers.c.data.entities.Patient;
 import app.layers.c.data.repositories.MedicalTestResultsRepository;
 import app.layers.c.data.repositories.MedicalTestsRepository;
-import jakarta.persistence.EntityManager;
 
 @Service
 public class MedicalTestsService {
 	
 	private MedicalTestsRepository medicalTestsRepo;
 	private MedicalTestResultsRepository medicalTestResultsRepo;
-	
-	@Autowired
-	EntityManager entityManager;
 
 	@Autowired
 	public MedicalTestsService(MedicalTestsRepository medicalTestsRepo, MedicalTestResultsRepository medicalTestResultsRepo) {
@@ -28,7 +26,13 @@ public class MedicalTestsService {
 		this.medicalTestResultsRepo = medicalTestResultsRepo;
 	}
 	
+	@Transactional(isolation=Isolation.READ_UNCOMMITTED, propagation=Propagation.REQUIRED)
 	public List<TestSummary> getAllTests() {
+		medicalTestsRepo.findBy(TestSummary.class);
+
+		// se qualcuno inserisce nella tabelle un nuovo record
+		// (quindi non una modifica a un record già esistente)
+		
 		return medicalTestsRepo.findBy(TestSummary.class);
 	}
 
@@ -82,10 +86,11 @@ public class MedicalTestsService {
 	 * Un altro possibile modo di avviare, annullare, o committare una transazione è quello
 	 * di farsi iniettare come dipendenza l'EntityManager di JPA, il quale espone metodi
 	 * che possiamo utilizzare per effettuare manualmente queste operazioni.
+	 * @throws Exception 
 	 */
-	
-	@Transactional
-	public TestDetails saveTest(TestDetails testDetails) {		
+
+	@Transactional(rollbackFor = { Exception.class })
+	public TestDetails saveTest(TestDetails testDetails) throws Exception {		
 		MedicalTest testEntity = new MedicalTest();
 		
 		Patient p = new Patient();
@@ -102,7 +107,7 @@ public class MedicalTestsService {
 		
 		/*
 		if(p.getId() != null) {
-			throw new RuntimeException("Something went wrong while saving the test.");
+			throw new Exception("Something went wrong while saving the test.");
 		}
 		*/
 				

@@ -1,21 +1,20 @@
-package app.layers.a.presentation;
+package app.layers.a.presentation.controllers;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.layers.b.service.medicaltests.TestSummary;
 import app.layers.b.service.patients.PatientSummary;
 import app.layers.b.service.patients.PatientsService;
 import app.layers.c.data.entities.Patient;
-import app.layers.c.data.repositories.PatientsRepository;
 
 @RestController
 @RequestMapping("patients")
@@ -59,7 +58,11 @@ public class PatientsController {
 	
 	@GetMapping
 	public List<PatientSummary> getPatients() {
-		return patientsService.getAllPatients();
+		List<PatientSummary> summaries = patientsService.getAllPatients();
+		
+		// Mapping verso un DTO
+		
+		return summaries;
 	}
 	
 	// L'API RESTful risponde con l'entità appena creata.
@@ -87,7 +90,25 @@ public class PatientsController {
 		return null;
 	}
 	
+	/**
+	 * Se abbiamo usato l'annotazione @EnableMethodSecurity valorizzando con true il
+	 * parametro "securedEnabled", possiamo indicare tramite l'annotazione @Secured che
+	 * l'endpoint necessita di autenticazione per poter essere invocato. Possiamo anche
+	 * indicare una o più "authorities" che l'utente deve possedere per l'invocazione.
+	 * 
+	 * In realtà, non siete limitati a utilizzare questa annotazione soltanto all'interno
+	 * dei controller: la si può usare anche nel service layer o (meno comunemente) in
+	 * altri layer.
+	 * 
+	 * Se non valorizzate il parametro "securedEnabled" a true, potete comunque utilizzare
+	 * altre annotazioni (es. @PreAuthorize e @PostAuthorize), il cui uso però risulta più
+	 * complesso e specifico rispetto all'annotazione @Secured.
+	 */
+	
 	@GetMapping("{id}/medical-tests")
+	@Secured({})
+	// @Secured("DOCTOR")
+	// @Secured({ "DOCTOR", "ADMIN" })
 	public List<TestSummary> getMedicalTestsOfPatient(@PathVariable long id) {
 		return null;
 	}

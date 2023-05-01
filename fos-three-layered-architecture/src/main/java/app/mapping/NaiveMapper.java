@@ -79,9 +79,9 @@ public class NaiveMapper {
 	private static List<Method> settersOf(Class<?> clazz) {
 		List<Method> setters = new LinkedList<>();
 		
-		for(Method m : clazz.getMethods()) {
-			if(m.getName().startsWith("set")) {
-				setters.add(m);
+		for(Method method : clazz.getMethods()) {
+			if(method.getName().startsWith("set")) {
+				setters.add(method);
 			}
 		}
 		
